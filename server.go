@@ -13,7 +13,7 @@ type Server interface {
 	//Set server host, port and function for logging
 	Configure(host, port string, logFunc func(http.Handler) http.Handler)
 	//Launch server
-	Run() error
+	Run() (err error, exitChan *chan bool)
 	//Get router (*gorilla/mux.Router)
 	GetRouter() *mux.Router
 	//Add route
@@ -26,8 +26,8 @@ type Server interface {
 
 type sError string
 
-func (err *sError) Error() string {
-	return string(*err)
+func (err sError) Error() string {
+	return string(err)
 }
 
 type err404Handler struct {
@@ -46,6 +46,7 @@ type server struct {
 	configured bool
 	run        bool
 	err404     *err404Handler
+	exitChan   chan bool
 }
 
 func (s *server) log(handler http.Handler) (ret http.Handler) {
@@ -79,11 +80,13 @@ func (s *server) Configure(host, port string, logFunc func(http.Handler) http.Ha
 	s.configured = true
 }
 
-func (s *server) Run() error {
-	err := new(sError)
+func (s *server) Run() (err error, exitChan *chan bool) {
+	s.exitChan = make(chan bool)
+	exitChan = &s.exitChan
+	err = new(sError)
 	if s.run {
-		*err = sError("Server already running")
-		return err
+		err = sError("Server already running")
+		return err, exitChan
 	}
 	if s.configured {
 		http.Handle("/", s.router)
@@ -94,13 +97,16 @@ func (s *server) Run() error {
 			WriteTimeout:   100 * time.Second,
 			MaxHeaderBytes: 1 << 20,
 		}
-		go s.server.ListenAndServe()
+		go func(exitChan *chan bool) {
+			s.server.ListenAndServe()
+			(*exitChan) <- true
+		}(exitChan)
 		s.run = true
 	} else {
-		*err = sError("Server not configured!")
-		return err
+		err = sError("Server not configured!")
+		return err, exitChan
 	}
-	return err
+	return err, exitChan
 }
 
 func (s *server) GetRouter() (router *mux.Router) {

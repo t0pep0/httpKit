@@ -19,7 +19,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestRunWithoutConfig(t *testing.T) {
-	err := server_test.Run()
+	err, _ := server_test.Run()
 	if err.Error() != "Server not configured!" {
 		t.Fatal("Server.Run() not return error ..FAIL!")
 	} else {
@@ -34,7 +34,7 @@ func TestRunWithConfig(t *testing.T) {
 		return DefaultLog(handler)
 	}
 	server_test.Configure("localhost", "9999", log_func)
-	err := server_test.Run()
+	err, _ := server_test.Run()
 	if err.Error() != "" {
 		t.Fatal("Server.Run() return error:", err.Error(), " ..FAIL!")
 	} else {
@@ -49,7 +49,7 @@ func TestRunWithConfig(t *testing.T) {
 }
 
 func TestDoubleRun(t *testing.T) {
-	err := server_test.Run()
+	err, _ := server_test.Run()
 	if err.Error() != "Server already running" {
 		t.Fatal("Server.Run() not return err ..FAIL!")
 	} else {
