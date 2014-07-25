@@ -1,3 +1,4 @@
+//Litle http server package
 package httpKit
 
 import (
@@ -8,11 +9,11 @@ import (
 
 //HTTP Server interface
 type Server interface {
-	//Set server host & port
+	//Set server host, port and function for logging
 	Configure(host, port string, logFunc func(http.Handler) http.Handler)
 	//Launch server
 	Run() error
-	//Get router
+	//Get router (*gorilla/mux.Router)
 	GetRouter() *mux.Router
 	//Add route
 	AddRoute(pattern, method, name string, handler func(http.ResponseWriter, *http.Request))
@@ -53,6 +54,7 @@ func (s *server) log(handler http.Handler) (ret http.Handler) {
 	return handler
 }
 
+//Create new server
 func New() (serv Server) {
 	servp := new(server)
 	servp.router = mux.NewRouter()
