@@ -31,7 +31,7 @@ func TestRunWithConfig(t *testing.T) {
 	test_log := make(chan bool, 10)
 	log_func := func(handler http.Handler) http.Handler {
 		test_log <- true
-		return handler
+		return DefaultLog
 	}
 	server_test.Configure("localhost", "9999", log_func)
 	err := server_test.Run()

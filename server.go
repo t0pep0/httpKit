@@ -64,6 +64,13 @@ func New() (serv Server) {
 	return servp
 }
 
+func DefaultLog(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler.ServeHTTP(w, r)
+		log.Println(r.Proto, r.Method, r.RemoteAddr, r.URL, r.UserAgent())
+	})
+}
+
 func (s *server) Configure(host, port string, logFunc func(http.Handler) http.Handler) {
 	s.host = host
 	s.port = port
